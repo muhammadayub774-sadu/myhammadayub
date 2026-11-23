@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GAME WORLD — Yoshga Mos Interaktiv O‘yinlar Platformasi</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="responsive.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body class="dark-mode">
+  <!-- YUKLANISH ANIMATSIYASI -->
+  <div id="loader-screen" class="loader-screen">
+    <div class="neon-spinner"></div>
+    <p class="loader-label">GAME WORLD yuklanmoqda...</p>
+  </div>
+
+  <!-- KIRISH EKRANI (3D + LOGO + O'YINNI BOSHLASH) -->
+  <section id="splash-screen" class="splash-screen">
+    <canvas id="splash-3d-canvas" class="splash-3d-canvas"></canvas>
+    <div class="splash-overlay">
+      <div class="splash-content glass-panel">
+        <div class="logo-badge">3D • ARCADE • STRATEGY • KIDS</div>
+        <h1 class="brand-logo">GAME <span>WORLD</span></h1>
+        <p class="splash-desc">
+          Yoshingizga mos 28 ta haqiqiy o‘yin, 3D muhit, kunlik topshiriqlar va shaxsiy rekordlar dunyosi.
+        </p>
+        <button type="button" id="start-platform-btn" class="btn btn-neon btn-lg">
+          🚀 O‘YINNI BOSHLASH
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- YOSH VA NICKNAME KIRITISH MODALI -->
+  <div id="onboarding-modal" class="modal-overlay hidden">
+    <div class="modal-box glass-panel">
+      <div id="step-age-box">
+        <h2>Yoshingizni tanlang</h2>
+        <p class="muted-text">Sizga eng mos o‘yinlar to‘plamini avtomatik ochamiz.</p>
+        <div class="age-choice-grid">
+          <button type="button" class="age-choice-btn" data-age-group="3-5">
+            <strong>3–5 yosh</strong>
+            <span>Kichkintoylar Dunyosi</span>
+          </button>
+          <button type="button" class="age-choice-btn" data-age-group="6-10">
+            <strong>6–10 yosh</strong>
+            <span>Qiziqarli O‘yinlar</span>
+          </button>
+          <button type="button" class="age-choice-btn" data-age-group="11-15">
+            <strong>11–15 yosh</strong>
+            <span>Sarguzasht Dunyosi</span>
+          </button>
+          <button type="button" class="age-choice-btn" data-age-group="16-20">
+            <strong>16–20 yosh</strong>
+            <span>Professional Gaming</span>
+          </button>
+        </div>
+        <p id="age-select-error" class="form-error hidden">Iltimos, yosh guruhini tanlang!</p>
+      </div>
+
+      <div id="step-nick-box" class="hidden">
+        <div class="selected-group-pill" id="selected-group-pill"></div>
+        <h2>Nickname kiriting</h2>
+        <p class="muted-text">O‘yinlarda sizga murojaat qilish va rekordlarni saqlash uchun.</p>
+        <input
+          type="text"
+          id="nickname-input"
+          class="text-input"
+          maxlength="20"
+          placeholder="Masalan: NeoGamer yoki Malika"
+          autocomplete="off"
+        />
+        <p id="nick-error" class="form-error hidden">Nickname bo‘sh bo‘lishi mumkin emas!</p>
+        <div class="modal-footer-btns">
+          <button type="button" id="back-to-age-btn" class="btn btn-ghost">← Yoshni o‘zgartirish</button>
+          <button type="button" id="continue-to-home-btn" class="btn btn-neon">DAVOM ETISH →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ASOSIY SAHIFA -->
+  <div id="main-app" class="main-app hidden">
+    <header class="top-header glass-panel">
+      <div class="header-left">
+        <div class="brand-logo small-logo">GAME <span>WORLD</span></div>
+        <span id="age-category-badge" class="category-chip"></span>
+      </div>
+
+      <div class="header-center">
+        <input
+          type="search"
+          id="search-games-input"
+          class="search-input"
+          placeholder="🔍 O‘yin nomini qidiring..."
+        />
+      </div>
+
+      <div class="header-right">
+        <button type="button" id="theme-toggle-btn" class="btn btn-ghost btn-sm" title="Dark / Light rejim">
+          🌓 Rejim
+        </button>
+        <button type="button" id="sound-toggle-btn" class="btn btn-ghost btn-sm" title="Ovoz effektlari">
+          🔊 Ovoz
+        </button>
+        <button type="button" id="open-profile-btn" class="profile-pill">
+          <span class="avatar-circle" id="header-avatar">🎮</span>
+          <span class="profile-summary">
+            <strong id="header-nickname">Player</strong>
+            <small id="header-age">6–10 yosh</small>
+          </span>
+        </button>
+      </div>
+    </header>
+
+    <main class="dashboard-container">
+      <!-- Yuqori qism: Kunlik topshiriqlar + Yaqinda o'ynalgan + Eng yaxshi natijalar -->
+      <section class="top-widgets-grid">
+        <div class="glass-panel widget-card">
+          <div class="widget-head">
+            <h3>🎯 Kunlik topshiriqlar</h3>
+            <span id="daily-progress-text" class="badge-pill">0 / 3</span>
+          </div>
+          <ul id="daily-quests-list" class="quest-list"></ul>
+        </div>
+
+        <div class="glass-panel widget-card">
+          <div class="widget-head">
+            <h3>🕒 Yaqinda o‘ynalgan o‘yinlar</h3>
+          </div>
+          <div id="recent-games-list" class="mini-tag-list"></div>
+        </div>
+
+        <div class="glass-panel widget-card">
+          <div class="widget-head">
+            <h3>🏆 Eng yaxshi natijalar</h3>
+          </div>
+          <div id="top-scores-list" class="mini-tag-list"></div>
+        </div>
+      </section>
+
+      <!-- Kategoriyalar filtri -->
+      <section class="categories-section">
+        <div id="category-tabs" class="category-tabs"></div>
+      </section>
+
+      <!-- Eng mashhur o'yinlar -->
+      <section class="games-section">
+        <div class="section-title-row">
+          <h2>🔥 Eng mashhur o‘yinlar</h2>
+          <span id="popular-count" class="muted-text"></span>
+        </div>
+        <div id="popular-games-grid" class="games-grid"></div>
+      </section>
+
+      <!-- Yosh toifasiga mos barcha o'yinlar -->
+      <section class="games-section">
+        <div class="section-title-row">
+          <h2 id="all-age-games-title">🕹️ Sizga mos o‘yinlar</h2>
+          <span id="total-age-games-count" class="muted-text"></span>
+        </div>
+        <div id="all-games-grid" class="games-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- PROFIL VA SOZLAMALAR MODALI -->
+  <div id="profile-modal" class="modal-overlay hidden">
+    <div class="modal-box glass-panel profile-modal-box">
+      <div class="modal-top-bar">
+        <h2>👤 Profil va Natijalar</h2>
+        <button type="button" id="close-profile-btn" class="btn btn-ghost btn-sm">✕</button>
+      </div>
+
+      <div class="profile-stats-row">
+        <div class="stat-box">
+          <span class="muted-text">Jami o‘yinlar</span>
+          <strong id="prof-games-count">0</strong>
+        </div>
+        <div class="stat-box">
+          <span class="muted-text">Jami ball</span>
+          <strong id="prof-total-score">0</strong>
+        </div>
+        <div class="stat-box">
+          <span class="muted-text">Medallar</span>
+          <strong id="prof-medals-count">0</strong>
+        </div>
+      </div>
+
+      <div class="profile-edit-form">
+        <label class="field-label">Nickname</label>
+        <input type="text" id="prof-nick-input" class="text-input" maxlength="20" />
+
+        <label class="field-label">Yosh guruhi</label>
+        <select id="prof-age-select" class="text-input">
+          <option value="3-5">3–5 yosh (Kichkintoylar Dunyosi)</option>
+          <option value="6-10">6–10 yosh (Qiziqarli O‘yinlar)</option>
+          <option value="11-15">11–15 yosh (Sarguzasht Dunyosi)</option>
+          <option value="16-20">16–20 yosh (Professional Gaming)</option>
+        </select>
+        <p id="prof-save-msg" class="success-text hidden">Profil muvaffaqiyatli saqlandi!</p>
+        <button type="button" id="save-profile-btn" class="btn btn-neon">💾 O‘zgarishlarni saqlash</button>
+      </div>
+
+      <h3 class="sub-heading">🏅 Yutuqlar va Medallar</h3>
+      <div id="prof-badges-list" class="badges-grid"></div>
+
+      <h3 class="sub-heading">📊 Rekord natijalar</h3>
+      <div id="prof-records-list" class="records-list"></div>
+    </div>
+  </div>
+
+  <!-- ALOHIDA O'YIN OYNASI -->
+  <div id="game-stage-modal" class="game-stage-overlay hidden">
+    <div class="game-stage-shell glass-panel">
+      <div class="game-stage-header">
+        <div>
+          <h2 id="active-game-title">O‘yin nomi</h2>
+          <p id="active-game-desc" class="muted-text"></p>
+        </div>
+        <div class="game-hud">
+          <span class="hud-chip" id="hud-score">Ball: 0</span>
+          <span class="hud-chip" id="hud-status">Faol</span>
+          <button type="button" id="restart-game-btn" class="btn btn-ghost btn-sm">🔄 Qayta boshlash</button>
+          <button type="button" id="exit-game-btn" class="btn btn-danger btn-sm">✕ Chiqish</button>
+        </div>
+      </div>
+
+      <div id="game-viewport" class="game-viewport"></div>
+
+      <div id="game-touch-controls" class="game-touch-controls"></div>
+    </div>
+  </div>
+</body>
+</html>
